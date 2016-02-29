@@ -1,0 +1,42 @@
+#![allow(non_camel_case_types)]
+
+enum_from_primitive! {
+    #[derive(Debug, PartialEq)]
+    pub enum Opcodes {
+        NOOP    = 0xFFFF,
+        CLS     = 0x00E0,
+        RET     = 0x00EE,
+        JMP     = 0x1000,
+        CALL    = 0x2000,
+        SE_VB   = 0x3000,
+        SNE_VB  = 0x4000,
+        SE_VV   = 0x5000,
+        LD_VB   = 0x6000,
+        ADD_VB  = 0x7000,
+        LD_VV   = 0x8000,
+        OR      = 0x8001,
+        AND     = 0x8002,
+        XOR     = 0x8003,
+        ADD_VV  = 0x8004,
+        SUB_VV  = 0x8005,
+        SHR     = 0x8006,
+        SUBN    = 0x8007,
+        SHL     = 0x800E,
+        SNE_VV  = 0x9000,
+        LD_IA   = 0xA000,
+        JMP_VA  = 0xB000,
+        RND     = 0xC000,
+        DRW     = 0xD000,
+        SKP     = 0xE09E,
+        SKNP    = 0xE0A1,
+        LD_VDT  = 0xF007,
+        LD_VK   = 0xF00A,
+        LD_DTV  = 0xF015,
+        LD_STV  = 0xF018,
+        ADD_IV  = 0xF01E,
+        LD_FV   = 0xF029,
+        LD_BV   = 0xF033,
+        LD_IV   = 0xF055,
+        LD_VI   = 0xF065,
+    }
+}
