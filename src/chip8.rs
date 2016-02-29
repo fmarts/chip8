@@ -394,7 +394,7 @@ impl<'a> Chip8<'a> {
             for j in 0usize..640 {
                 if self.screen.buffer[(j/10)+(i/10)*64] == 1 {
                     self.screen.renderer.fill_rect(
-                        Rect::new(i as i32, j as i32, 1, 1)
+                        Rect::new(j as i32, i as i32, 1, 1)
                     );
                 }
             }
