@@ -113,6 +113,7 @@ impl<'a> Chip8<'a> {
             Opcodes::LD_BV  => self.ld_bv(),
             Opcodes::LD_VV  => self.ld_vv(),
             Opcodes::LD_VI  => self.ld_vi(),
+            Opcodes::LD_VK  => self.ld_vk(),
             Opcodes::LD_IV  => self.ld_iv(),
             Opcodes::LD_FV  => self.ld_fv(),
             Opcodes::LD_IA  => self.ld_ia(),
@@ -299,23 +300,45 @@ impl<'a> Chip8<'a> {
     }
 
     fn ld_vi(&mut self) {
-        let x = self.regs[self.inst.x] as usize;
+        let x = self.inst.x as usize;
+
+        println!("ld_vi x: {}", x);
 
         for i in 0usize..x {
             self.regs[i] = self.mem[self.i as usize + i];  
         }
+
+        // TODO: is this really important?
+        // self.i += x as u16 + 1;
     }
 
     fn ld_iv(&mut self) {
-        let x = self.regs[self.inst.x] as usize;
+        let x = self.inst.x as usize;
 
         for i in 0usize..x {
             self.mem[self.i as usize + i] = self.regs[i]; 
         }
+
+        // TODO: is this really important?
+        // self.i += x as u16 + 1;
     }
 
     fn ld_ia(&mut self) {
         self.i = self.inst.nnn;
+    }
+
+    fn ld_vk(&mut self) {
+        let mut key_pressed = false;
+
+        if self.key != 0 {
+            self.regs[self.inst.x] = self.key;
+            key_pressed = true;
+        }
+
+        if !key_pressed {
+            // TODO: create pc_dec
+            self.pc -= 2;
+        }
     }
 
     fn ld_vdt(&mut self) {
