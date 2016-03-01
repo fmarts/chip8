@@ -291,15 +291,11 @@ impl<'a> Chip8<'a> {
 
     fn ld_bv(&mut self) {
         let idx = self.inst.x;
-        let mut vx  = self.regs[idx];
-        let mut hundred = 100;
+        let x   = self.regs[idx];
 
-        for i in 0usize..3 {
-            let bcd = vx / hundred;
-            self.mem[self.i as usize + i] = bcd;
-            vx -= bcd * hundred;
-            hundred /= 10;
-        }
+        self.mem[self.i as usize]     = x / 100;
+        self.mem[self.i as usize + 1] = (x / 100) % 10;
+        self.mem[self.i as usize + 2] = (x % 100) % 10; 
     }
 
     fn ld_fv(&mut self) {
