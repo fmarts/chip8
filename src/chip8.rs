@@ -171,66 +171,47 @@ impl<'a> Chip8<'a> {
     }
 
     fn call(&mut self) {
-        let old_addr = self.pc;
-        let cur_addr = self.inst.nnn;
-        self.stack.push(old_addr);
-        self.set_pc(cur_addr);
+        let new_addr = self.inst.nnn;
+        self.stack.push(self.pc);
+        self.set_pc(new_addr);
         self.jmp = true;
     }
 
     fn se_vb(&mut self) {
-        let idx = self.inst.x;
-        if self.regs[idx] == self.inst.kk {
+        if self.regs[self.inst.x] == self.inst.kk {
             self.inc_pc();
         } 
     }
 
     fn se_vv(&mut self) {
-        let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
-        if self.regs[idx_x] == self.regs[idx_y] {
+        if self.regs[self.inst.x] == self.regs[self.inst.y] {
             self.inc_pc();
         }
     }
 
     fn sne_vb(&mut self) {
-        let idx = self.inst.x;
-        if self.regs[idx] != self.inst.kk {
+        if self.regs[self.inst.x] != self.inst.kk {
             self.inc_pc();
         }
     }
 
     fn sne_vv(&mut self) {
-        let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
-        if self.regs[idx_x] != self.regs[idx_y] {
+        if self.regs[self.inst.x] != self.regs[self.inst.y] {
             self.inc_pc();
         }
     }
 
     fn or(&mut self) {
-        let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
-        self.regs[idx_x] |= self.regs[idx_y]
+        self.regs[self.inst.x] |= self.regs[self.inst.y];
     }
 
     fn and(&mut self) {
-        let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
-        self.regs[idx_x] &= self.regs[idx_y];
+        self.regs[self.inst.x] &= self.regs[self.inst.y];
     }
 
     fn add_vb(&mut self) {
-        let idx_x = self.inst.x;
-
-        // TODO: I guess this shouldn't be this way
-        let res = self.regs[idx_x]  as u16 + self.inst.kk as u16;
-
-        if res > 0xFF {
-            self.regs[idx_x] = (res & 0xFF) as u8;
-        } else {
-            self.regs[idx_x] += self.inst.kk;
-        }
+        let idx = self.inst.x;
+        self.regs[idx] = self.regs[idx].wrapping_add(self.inst.kk);
     }
 
     fn add_vv(&mut self) {
@@ -244,22 +225,18 @@ impl<'a> Chip8<'a> {
     }
 
     fn add_iv(&mut self) {
-        let idx = self.inst.x;
-        let x   = self.regs[idx] as u16;
+        let x   = self.regs[self.inst.x] as u16;
         self.regs[0xF] = ((self.i + x) > 255) as u8;
         self.i += x;
     }
 
     fn sub(&mut self) {
         let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
         let x = self.regs[idx_x];
-        let y = self.regs[idx_y];
+        let y = self.regs[self.inst.y];
 
         self.regs[0xF] = (x > y) as u8;
-
-        if x <= y { self.regs[idx_x] = 0; }
-        else { self.regs[idx_x] -= y; }
+        self.regs[idx_x] = x.wrapping_sub(y);
     }
 
     fn subn(&mut self) {
@@ -267,13 +244,11 @@ impl<'a> Chip8<'a> {
         let y = self.regs[self.inst.y];
 
         self.regs[0xF] = (y > x) as u8;
-        self.regs[self.inst.x] = y - x;
+        self.regs[self.inst.x] = y.wrapping_sub(x);
     }
 
     fn xor(&mut self) {
-        let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
-        self.regs[idx_x] ^= self.regs[idx_y];
+        self.regs[self.inst.x] ^= self.regs[self.inst.y];
     }
 
     fn shr(&mut self) {
@@ -292,19 +267,15 @@ impl<'a> Chip8<'a> {
     }
 
     fn ld_vv(&mut self) {
-        let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
-        self.regs[idx_x] = self.regs[idx_y];
+        self.regs[self.inst.x] = self.regs[self.inst.y];
     }
 
     fn ld_vb(&mut self) {
-        let idx = self.inst.x;
-        self.regs[idx] = self.inst.kk;
+        self.regs[self.inst.x] = self.inst.kk;
     }
 
     fn ld_bv(&mut self) {
-        let idx = self.inst.x;
-        let x   = self.regs[idx];
+        let x = self.regs[self.inst.x];
 
         self.mem[self.i as usize]     = x / 100;
         self.mem[self.i as usize + 1] = (x / 100) % 10;
@@ -352,25 +323,19 @@ impl<'a> Chip8<'a> {
     }
 
     fn ld_vdt(&mut self) {
-        let idx = self.inst.x;
-        self.regs[idx] = self.dt;
+        self.regs[self.inst.x] = self.dt;
     }
 
     fn ld_dtv(&mut self) {
-        let idx: usize = self.inst.x;
-        self.dt = self.regs[idx];
+        self.dt = self.regs[self.inst.x];
     }
 
     fn ld_stv(&mut self) {
-        let idx = self.inst.x;
-        self.st = self.regs[idx];
+        self.st = self.regs[self.inst.x];
     }
 
     fn rnd(&mut self) {
-        let idx = self.inst.x;
-        let byte = self.inst.kk;
-        let n: u8 = thread_rng().gen_range(0,255);
-        self.regs[idx] = n & byte;
+        self.regs[self.inst.x] = thread_rng().gen::<u8>() & self.inst.kk;
     }
 
     fn drw(&mut self) {

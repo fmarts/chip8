@@ -15,7 +15,6 @@ use docopt::Docopt;
 use sdl2::keyboard::Keycode;
 use sdl2::event::Event;
 use chip8::Chip8;
-use screen::Screen;
 
 const USAGE: &'static str = "
 Chip8 Emulator
