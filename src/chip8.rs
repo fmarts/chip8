@@ -42,7 +42,7 @@ pub struct Chip8<'a> {
     inst:   Instruction,
     jmp:    bool,
 
-    key:    u8,
+    keys:   [u8; 16],
     mem:    [u8; 4096],
     stack:  Vec<usize>,
     screen: Screen<'a>,
@@ -64,7 +64,7 @@ impl<'a> Chip8<'a> {
             pc:     0x200,
             inst:   Instruction::new(),
             jmp:    false,
-            key:    0,
+            keys:   [0; 16],
             mem:    [0; 4096], 
             stack:  vec![],
             screen: Screen::new(sdl),
@@ -339,14 +339,15 @@ impl<'a> Chip8<'a> {
     fn ld_vk(&mut self) {
         let mut key_pressed = false;
 
-        if self.key != 0 {
-            self.regs[self.inst.x] = self.key;
-            key_pressed = true;
+        for i in 0..self.keys.len() {
+            if self.keys[i] == 1 {
+                self.regs[self.inst.x] = i as u8;
+                key_pressed = true;
+            }
         }
 
         if !key_pressed {
-            // TODO: create pc_dec
-            self.pc -= 2;
+            self.dec_pc();
         }
     }
 
@@ -403,19 +404,28 @@ impl<'a> Chip8<'a> {
                 }
             }
         }
+
+        self.screen.draw();
     }
 
     fn skp(&mut self) {
         let x = self.regs[self.inst.x];
-        if x == self.key {
+        if self.keys[x as usize] == 1{
             self.inc_pc();
         }
     }
 
     fn sknp(&mut self) {
         let x = self.regs[self.inst.x];
-        if x != self.key {
+        if self.keys[x as usize] == 0 {
             self.inc_pc();
         }
+    }
+    pub fn reset_keys(&mut self) {
+        self.keys = [0;16];
+    }
+
+    pub fn press(&mut self, key: u8) {
+        self.keys[key as usize] = 1;
     }
 }

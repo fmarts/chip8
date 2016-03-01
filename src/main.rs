@@ -47,14 +47,34 @@ fn main() {
     'main: loop {
         for event in events.poll_iter() {
             match event {
-                Event::Quit{..}     => break 'main,
-                _                   => continue
+                Event::Quit{..} => break 'main,
+                Event::KeyDown {
+                    keycode: Some(key), ..
+                } => {
+                    chip8.reset_keys();
+                    match key {
+                        Keycode::Num1 => chip8.press(0x1),
+                        Keycode::Num2 => chip8.press(0x2),
+                        Keycode::Num3 => chip8.press(0x3),
+                        Keycode::Num4 => chip8.press(0xc),
+                        Keycode::Q    => chip8.press(0x4),
+                        Keycode::W    => chip8.press(0x5),
+                        Keycode::E    => chip8.press(0x6),
+                        Keycode::R    => chip8.press(0xd),
+                        Keycode::A    => chip8.press(0x7),
+                        Keycode::S    => chip8.press(0x8),
+                        Keycode::D    => chip8.press(0x9),
+                        Keycode::Z    => chip8.press(0x0),
+                        Keycode::X    => chip8.press(0xb),
+                        Keycode::F    => chip8.press(0xf),
+                        _             => {},
+                    }
+                },
+                _                 => {},
             }
         }
 
         chip8.run();
-        //println!("{:?}", chip8); 
-        //stdin().read_line(&mut buf);
     }
 
     println!("Exiting..");
