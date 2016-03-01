@@ -239,19 +239,14 @@ impl<'a> Chip8<'a> {
         let y = self.regs[self.inst.y] as u16;
 
         let res = x + y;
-        if res > 0xFF {
-            self.regs[15] = 1;
-        } else {
-            self.regs[15] = 0;
-        }
-
+        self.regs[0xF]   = (res > 255) as u8;
         self.regs[idx_x] = res as u8;
     }
 
     fn add_iv(&mut self) {
         let idx = self.inst.x;
         let x   = self.regs[idx] as u16;
-        self.regs[15] = if (self.i + x) > 0xFFF { 1 } else { 0 };
+        self.regs[0xF] = ((self.i + x) > 255) as u8;
         self.i += x;
     }
 
