@@ -44,7 +44,7 @@ pub struct Chip8<'a> {
 
     key:    u8,
     mem:    [u8; 4096],
-    stack:  Vec<u16>,
+    stack:  Vec<usize>,
     screen: Screen<'a>,
 }
 
@@ -152,11 +152,11 @@ impl<'a> Chip8<'a> {
 
     fn ret(&mut self) {
         let addr = self.stack.pop().unwrap();
-        self.set_pc(addr);
+        self.set_pc(addr as u16);
     }
 
     fn jmp(&mut self) {
-        let addr: u16 = self.inst.nnn;
+        let addr = self.inst.nnn;
         self.set_pc(addr);
         self.jmp = true;
     }
@@ -169,7 +169,7 @@ impl<'a> Chip8<'a> {
     }
 
     fn call(&mut self) {
-        let old_addr: u16 = self.pc as u16;
+        let old_addr = self.pc;
         let cur_addr = self.inst.nnn;
         self.stack.push(old_addr);
         self.set_pc(cur_addr);
