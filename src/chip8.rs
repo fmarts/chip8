@@ -124,7 +124,7 @@ impl<'a> Chip8<'a> {
     pub fn new(sdl: &Sdl) -> Chip8<'a> {
         Chip8 {
             regs:   [0; 16],
-            i:      0,
+            i:      0x200,
             dt:     0,
             st:     0,
             pc:     0x200,
