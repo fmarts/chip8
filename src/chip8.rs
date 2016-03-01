@@ -107,6 +107,7 @@ impl<'a> Chip8<'a> {
             Opcodes::ADD_VV => self.add_vv(),
             Opcodes::ADD_IV => self.add_iv(),
             Opcodes::SUB    => self.sub(),
+            Opcodes::SUBN   => self.subn(),
             Opcodes::XOR    => self.xor(),
             Opcodes::AND    => self.and(),
             Opcodes::LD_VB  => self.ld_vb(),
@@ -259,10 +260,18 @@ impl<'a> Chip8<'a> {
         let x = self.regs[idx_x];
         let y = self.regs[idx_y];
 
-        self.regs[15] = if x > y { 1 } else { 0 };
+        self.regs[0xF] = (x > y) as u8;
 
         if x <= y { self.regs[idx_x] = 0; }
         else { self.regs[idx_x] -= y; }
+    }
+
+    fn subn(&mut self) {
+        let x = self.regs[self.inst.x];
+        let y = self.regs[self.inst.y];
+
+        self.regs[0xF] = (y > x) as u8;
+        self.regs[self.inst.x] = y - x;
     }
 
     fn xor(&mut self) {
