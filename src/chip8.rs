@@ -260,7 +260,9 @@ impl<'a> Chip8<'a> {
         let y = self.regs[idx_y];
 
         self.regs[15] = if x > y { 1 } else { 0 };
-        self.regs[idx_x] -= y;
+
+        if x <= y { self.regs[idx_x] = 0; }
+        else { self.regs[idx_x] -= y; }
     }
 
     fn xor(&mut self) {
