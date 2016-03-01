@@ -142,6 +142,10 @@ impl<'a> Chip8<'a> {
         self.pc += 2;
     }
 
+    fn dec_pc(&mut self) {
+        self.pc -= 2;
+    }
+
     fn cls(&mut self) {
         self.screen.clear();
     }
