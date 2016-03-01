@@ -5,12 +5,14 @@ use std::fs::File;
 use std::io::Read;
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
+use rand::{thread_rng, Rng};
 use sdl2::Sdl;
 use sdl2::rect::Rect;
 use ep::FromPrimitive;
 
 use screen::Screen;
 use opcodes::Opcodes;
+
 
 // TODO: move this elsewhere
 const FONT_SET: [u8; 80] = [
@@ -181,6 +183,9 @@ impl<'a> Chip8<'a> {
             Opcodes::LD_VDT => self.ld_vdt(),
             Opcodes::LD_DTV => self.ld_dtv(),
             Opcodes::LD_STV => self.ld_stv(),
+            Opcodes::SKP    => self.skp(),
+            Opcodes::SKNP   => self.sknp(),
+            Opcodes::RND    => self.rnd(),
             Opcodes::SHR    => self.shr(),
             Opcodes::DRW    => self.drw(),
             _               => panic!("Unrecognized opcode: {:?}", self.inst.get_opcode()),
@@ -366,7 +371,14 @@ impl<'a> Chip8<'a> {
         let idx = self.inst.x;
         self.st = self.regs[idx];
     }
-    
+   
+    fn rnd(&mut self) {
+        let idx = self.inst.x;
+        let byte = self.inst.kk;
+        let n: u8 = thread_rng().gen_range(0,255);
+        self.regs[idx] = n & byte;
+    }
+
     fn drw(&mut self) {
         let idx_x = self.inst.x;
         let idx_y = self.inst.y;
@@ -381,7 +393,6 @@ impl<'a> Chip8<'a> {
             let px = self.mem[(start + i as u16) as usize];
             for j in 0..8 {
                 if px & (0x80 >> j) != 0 {
-                    // println!("buffer idx: {}", ((x+j) + ((y+i) * 64)));
                     if self.screen.buffer[(x+j + (y+i) * 64) as usize] == 1 {
                         self.regs[15] = 1;
                     }               
@@ -401,11 +412,17 @@ impl<'a> Chip8<'a> {
         }
     }
     
-    fn skp(&self) {
-        panic!("Not implemented: SKP"); 
+    fn skp(&mut self) {
+        let x = self.regs[self.inst.x];
+        if x == self.key {
+            self.inc_pc();
+        }
     }
     
-    fn sknp(&self) {
-        panic!("Not implemented: SKNP");
+    fn sknp(&mut self) {
+        let x = self.regs[self.inst.x];
+        if x != self.key {
+            self.inc_pc();
+        }
     }
 }

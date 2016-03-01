@@ -8,6 +8,7 @@ extern crate rustc_serialize;
 extern crate docopt;
 extern crate sdl2;
 extern crate num;
+extern crate rand;
 #[macro_use] extern crate enum_primitive as ep;
 
 use docopt::Docopt;
