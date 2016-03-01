@@ -13,8 +13,6 @@ use ep::FromPrimitive;
 use screen::Screen;
 use opcodes::Opcodes;
 
-
-// TODO: move this elsewhere
 const FONT_SET: [u8; 80] = [
     0xf0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -117,7 +115,7 @@ pub struct Chip8<'a> {
 
 impl<'a> Debug for Chip8<'a> {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-         self.regs[..].fmt(f)
+        self.regs[..].fmt(f)
     }
 }
 
@@ -158,7 +156,7 @@ impl<'a> Chip8<'a> {
         self.jmp = false;
 
         println!("{:#x}: {:#x}", self.pc, self.inst.get_opcode());
-        
+
         match Opcodes::from_u16(self.inst.get_opcode()).unwrap() {
             Opcodes::CLS    => self.cls(),
             Opcodes::RET    => self.ret(),
@@ -195,12 +193,12 @@ impl<'a> Chip8<'a> {
         }
 
         println!("i: {}", self.i);
-        
+
         if !self.jmp { self.inc_pc(); }
-        
+
         if self.dt > 0 { self.dt -= 1; }
         if self.st > 0 { self.st -= 1; }
-    
+
         // TODO: refactor this to self.screen.present();
         self.screen.renderer.present();
     }
@@ -227,7 +225,7 @@ impl<'a> Chip8<'a> {
         self.set_pc(addr);
         self.jmp = true;
     }
-    
+
     fn jmp_va(&mut self) {
         let offset = self.regs[0] as u16;
         let addr = self.inst.nnn + offset;
@@ -295,7 +293,7 @@ impl<'a> Chip8<'a> {
         let idx_x = self.inst.x;
         let x = self.regs[idx_x] as u16;
         let y = self.regs[self.inst.y] as u16;
-        
+
         let res = x + y;
         if res > 0xFF {
             self.regs[15] = 1;
@@ -351,7 +349,7 @@ impl<'a> Chip8<'a> {
         let idx = self.inst.x;
         let mut vx  = self.regs[idx];
         let mut hundred = 100;
-        
+
         for i in 0usize..3 {
             let bcd = vx / hundred;
             self.mem[self.i as usize + i] = bcd;
@@ -367,9 +365,9 @@ impl<'a> Chip8<'a> {
 
     fn ld_vi(&mut self) {
         let x = self.regs[self.inst.x] as usize;
-        
+
         for i in 0usize..x {
-           self.regs[i] = self.mem[self.i as usize + i];  
+            self.regs[i] = self.mem[self.i as usize + i];  
         }
     }
 
@@ -377,29 +375,29 @@ impl<'a> Chip8<'a> {
         let x = self.regs[self.inst.x] as usize;
 
         for i in 0usize..x {
-           self.mem[self.i as usize + i] = self.regs[i]; 
+            self.mem[self.i as usize + i] = self.regs[i]; 
         }
     }
-    
+
     fn ld_ia(&mut self) {
         self.i = self.inst.nnn;
     }
-    
+
     fn ld_vdt(&mut self) {
         let idx = self.inst.x;
         self.regs[idx] = self.dt;
     }
-    
+
     fn ld_dtv(&mut self) {
         let idx: usize = self.inst.x;
         self.dt = self.regs[idx];
     }
-    
+
     fn ld_stv(&mut self) {
         let idx = self.inst.x;
         self.st = self.regs[idx];
     }
-   
+
     fn rnd(&mut self) {
         let idx = self.inst.x;
         let byte = self.inst.kk;
@@ -414,7 +412,7 @@ impl<'a> Chip8<'a> {
         let n = self.inst.n as usize;
 
         let start = self.i;
-        
+
         self.regs[15] = 0;
 
         for i in 0..n {
@@ -428,25 +426,25 @@ impl<'a> Chip8<'a> {
                 }
             } 
         } 
-        
+
         for i in 0usize..320 {
             for j in 0usize..640 {
                 if self.screen.buffer[(j/10)+(i/10)*64] == 1 {
                     self.screen.renderer.fill_rect(
                         Rect::new(j as i32, i as i32, 1, 1)
-                    );
+                        );
                 }
             }
         }
     }
-    
+
     fn skp(&mut self) {
         let x = self.regs[self.inst.x];
         if x == self.key {
             self.inc_pc();
         }
     }
-    
+
     fn sknp(&mut self) {
         let x = self.regs[self.inst.x];
         if x != self.key {

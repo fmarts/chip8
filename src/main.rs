@@ -39,8 +39,8 @@ fn main() {
     let mut events = ctx.event_pump().unwrap();
 
     let args: Args = Docopt::new(USAGE)
-                            .and_then(|d| d.decode())
-                            .unwrap_or_else(|e| e.exit());
+        .and_then(|d| d.decode())
+        .unwrap_or_else(|e| e.exit());
 
     chip8.load_rom(&args.arg_file);
 
