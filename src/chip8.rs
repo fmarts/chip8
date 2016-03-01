@@ -90,7 +90,7 @@ impl<'a> Chip8<'a> {
 
         self.jmp  = false;
 
-        println!("{:#x}: {:#x}", self.pc, self.inst.opcode);
+        // println!("{:#x}: {:#x}", self.pc, self.inst.opcode);
 
         match Opcodes::from_u16(self.inst.opcode).unwrap() {
             Opcodes::CLS    => self.cls(),

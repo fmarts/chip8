@@ -29,6 +29,5 @@ impl<'a> Screen<'a> {
 
     pub fn clear(&mut self) { 
         self.buffer = [0; 64*32];
-        self.renderer.clear();
     }
 }
