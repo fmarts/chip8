@@ -18,7 +18,7 @@ enum_from_primitive! {
         AND     = 0x8002,
         XOR     = 0x8003,
         ADD_VV  = 0x8004,
-        SUB_VV  = 0x8005,
+        SUB     = 0x8005,
         SHR     = 0x8006,
         SUBN    = 0x8007,
         SHL     = 0x800E,
