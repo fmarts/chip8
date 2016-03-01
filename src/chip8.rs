@@ -289,8 +289,19 @@ impl<'a> Chip8<'a> {
         self.regs[idx_x] += self.regs[idx_y];
     }
 
-    fn add_vv(&self) {
-        panic!("Not implemented add_vv");
+    fn add_vv(&mut self) {
+        let idx_x = self.inst.x;
+        let x = self.regs[idx_x] as u16;
+        let y = self.regs[self.inst.y] as u16;
+        
+        let res = x + y;
+        if res > 0xFF {
+            self.regs[15] = 1;
+        } else {
+            self.regs[15] = 0;
+        }
+
+        self.regs[idx_x] = res as u8;
     }
 
     fn add_iv(&mut self) {
