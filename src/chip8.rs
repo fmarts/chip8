@@ -381,8 +381,8 @@ impl<'a> Chip8<'a> {
             } 
         } 
 
-        for i in 0usize..320 {
-            for j in 0usize..640 {
+        for i in 0usize..32*10 {
+            for j in 0usize..64*10 {
                 if self.screen.buffer[(j/10)+(i/10)*64] == 1 {
                     self.screen.renderer.fill_rect(
                         Rect::new(j as i32, i as i32, 1, 1)

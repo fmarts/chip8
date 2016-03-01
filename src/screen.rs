@@ -11,7 +11,7 @@ pub struct Screen<'a> {
 impl<'a> Screen<'a> { 
     pub fn new(ctx: &Sdl) -> Screen<'a> {
         let video   = ctx.video().unwrap();
-        let window  = video.window("chip8", 640, 320)
+        let window  = video.window("chip8", 64*10, 32*10)
             .position_centered()
             .opengl()
             .build()
@@ -23,7 +23,12 @@ impl<'a> Screen<'a> {
         }
     }
 
-    pub fn clear(&mut self) {           
+    pub fn draw(&mut self) {
+        self.renderer.present();
+    }
+
+    pub fn clear(&mut self) { 
+        self.buffer = [0; 64*32];
         self.renderer.clear();
     }
 }
