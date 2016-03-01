@@ -109,6 +109,7 @@ pub struct Chip8<'a> {
     inst:   Instruction,
     jmp:    bool,
 
+    key:    u8,
     mem:    [u8; 4096],
     stack:  Vec<u16>,
     screen: Screen<'a>,
@@ -130,6 +131,7 @@ impl<'a> Chip8<'a> {
             pc:     0x200,
             inst:   Instruction::new(),
             jmp:    false,
+            key:    0,
             mem:    [0; 4096], 
             stack:  vec![],
             screen: Screen::new(sdl),
