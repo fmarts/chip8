@@ -195,6 +195,10 @@ impl<'a> Chip8<'a> {
         println!("i: {}", self.i);
         
         if !self.jmp { self.inc_pc(); }
+        
+        if self.dt > 0 { self.dt -= 1; }
+        if self.st > 0 { self.st -= 1; }
+    
         // TODO: refactor this to self.screen.present();
         self.screen.renderer.present();
     }
