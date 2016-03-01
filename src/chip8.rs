@@ -121,12 +121,13 @@ impl<'a> Chip8<'a> {
             Opcodes::LD_VDT => self.ld_vdt(),
             Opcodes::LD_DTV => self.ld_dtv(),
             Opcodes::LD_STV => self.ld_stv(),
+            Opcodes::SHL    => self.shl(),
             Opcodes::SKP    => self.skp(),
             Opcodes::SKNP   => self.sknp(),
             Opcodes::RND    => self.rnd(),
             Opcodes::SHR    => self.shr(),
             Opcodes::DRW    => self.drw(),
-            _               => panic!("Unrecognized opcode: {:?}", self.inst.opcode),
+            _               => panic!("Unrecognized opcode: {:#x}", self.inst.opcode),
         }
 
         if !self.jmp { self.inc_pc(); }
@@ -283,8 +284,16 @@ impl<'a> Chip8<'a> {
     fn shr(&mut self) {
         let idx_x = self.inst.x;
         let x     = self.regs[idx_x];
-        self.regs[15] = x & 0x1;
+        self.regs[0xF] = x & 0x1;
         self.regs[idx_x] = x >> 1;
+    }
+
+    fn shl(&mut self) {
+        let x = self.regs[self.inst.x];
+        let y = self.regs[self.inst.y];
+
+        self.regs[0xF] = ((x & 0xF0) >> 7 == 1) as u8;
+        self.regs[self.inst.x] *= 2;
     }
 
     fn ld_vv(&mut self) {
