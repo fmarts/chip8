@@ -221,8 +221,15 @@ impl<'a> Chip8<'a> {
 
     fn add_vb(&mut self) {
         let idx_x = self.inst.x;
-        let idx_y = self.inst.y;
-        self.regs[idx_x] += self.regs[idx_y];
+
+        // TODO: I guess this shouldn't be this way
+        let res = self.regs[idx_x]  as u16 + self.inst.kk as u16;
+
+        if res > 0xFF {
+            self.regs[idx_x] = (res & 0xFF) as u8;
+        } else {
+            self.regs[idx_x] += self.inst.kk;
+        }
     }
 
     fn add_vv(&mut self) {
