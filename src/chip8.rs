@@ -88,7 +88,7 @@ impl<'a> Chip8<'a> {
         let raw_data = (self.mem[self.pc], self.mem[self.pc +1]); 
         self.inst.decode(raw_data); 
 
-        self.jmp = false;
+        self.jmp  = false;
 
         println!("{:#x}: {:#x}", self.pc, self.inst.opcode);
 
@@ -128,15 +128,10 @@ impl<'a> Chip8<'a> {
             _               => panic!("Unrecognized opcode: {:?}", self.inst.opcode),
         }
 
-        println!("i: {}", self.i);
-
         if !self.jmp { self.inc_pc(); }
 
         if self.dt > 0 { self.dt -= 1; }
         if self.st > 0 { self.st -= 1; }
-
-        // TODO: refactor this to self.screen.present();
-        self.screen.renderer.present();
     }
 
     fn set_pc(&mut self, addr: u16) {
@@ -311,14 +306,9 @@ impl<'a> Chip8<'a> {
     fn ld_vi(&mut self) {
         let x = self.inst.x as usize;
 
-        println!("ld_vi x: {}", x);
-
         for i in 0usize..x {
             self.regs[i] = self.mem[self.i as usize + i];  
         }
-
-        // TODO: is this really important?
-        // self.i += x as u16 + 1;
     }
 
     fn ld_iv(&mut self) {
@@ -327,9 +317,6 @@ impl<'a> Chip8<'a> {
         for i in 0usize..x {
             self.mem[self.i as usize + i] = self.regs[i]; 
         }
-
-        // TODO: is this really important?
-        // self.i += x as u16 + 1;
     }
 
     fn ld_ia(&mut self) {
@@ -379,12 +366,11 @@ impl<'a> Chip8<'a> {
         let (x, y) = (self.regs[idx_x] as usize, self.regs[idx_y] as usize);
         let n = self.inst.n as usize;
 
-        let start = self.i;
-
+        self.screen.renderer.clear();
         self.regs[15] = 0;
 
         for i in 0..n {
-            let px = self.mem[(start + i as u16) as usize];
+            let px = self.mem[(self.i + i as u16) as usize];
             for j in 0..8 {
                 if px & (0x80 >> j) != 0 {
                     if self.screen.buffer[(x+j + (y+i) * 64) as usize] == 1 {
