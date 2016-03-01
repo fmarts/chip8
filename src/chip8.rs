@@ -273,11 +273,9 @@ impl<'a> Chip8<'a> {
 
     fn shr(&mut self) {
         let idx_x = self.inst.x;
-        let vx    = self.regs[idx_x];
-        if vx & 0x01 == 0 {
-            self.regs[15] = 1;
-        }
-        self.regs[idx_x] = vx >> 1;
+        let x     = self.regs[idx_x];
+        self.regs[15] = x & 0x1;
+        self.regs[idx_x] = x >> 1;
     }
 
     fn ld_vv(&mut self) {
