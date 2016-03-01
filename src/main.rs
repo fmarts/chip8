@@ -2,7 +2,7 @@
 
 mod chip8;
 mod screen;
-mod opcodes;
+mod instruction;
 
 extern crate rustc_serialize;
 extern crate docopt;
@@ -52,7 +52,7 @@ fn main() {
             }
         }
 
-        chip8.fetch();
+        chip8.run();
         //println!("{:?}", chip8); 
         //stdin().read_line(&mut buf);
     }

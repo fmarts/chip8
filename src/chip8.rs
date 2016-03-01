@@ -11,7 +11,7 @@ use sdl2::rect::Rect;
 use ep::FromPrimitive;
 
 use screen::Screen;
-use opcodes::Opcodes;
+use instruction::{Opcodes, Instruction};
 
 const FONT_SET: [u8; 80] = [
     0xf0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -31,71 +31,6 @@ const FONT_SET: [u8; 80] = [
     0xf0, 0x80, 0xf0, 0x80, 0xf0, // E
     0xf0, 0x80, 0xf0, 0x80, 0x80, // F
 ];
-
-// TODO: move this elsewhere
-#[derive(Default)]
-struct Instruction {
-    opcode: u16,
-    nnn:    u16,
-    kk:     u8,
-    x:      usize, 
-    y:      usize,
-    n:      u8,
-}
-
-impl Instruction {
-    fn new() -> Instruction {
-        Instruction::default()
-    }
-
-    fn decode(&mut self, data: (u8,u8)) {
-        let fstb = data.0;
-        let sndb = data.1;
-
-        let op = fstb as u16 >> 4;
-
-        match op {
-            0x00                                => {
-                self.opcode = op << 12 | sndb as u16;
-            },
-            0x01 | 0x02 | 0x0a | 0x0b           => {
-                self.opcode = op << 12;
-                self.nnn    = (fstb as u16 & 0x0F) << 8 | sndb as u16;
-            },
-            0x03 | 0x04 | 0x06 | 0x07 | 0x0c    => {
-                self.opcode = op << 12;
-                self.x      = (fstb & 0x0F) as usize;
-                self.kk     = sndb;
-            },
-            0x05 | 0x08 | 0x09                  => {
-                self.opcode = op << 12 | sndb as u16 & 0x0F;
-                self.x      = (fstb & 0x0F) as usize;
-                self.y      = ((sndb & 0xF0) >> 4) as usize;
-            },
-            0x0e | 0x0f                         => {
-                self.opcode = op << 12 | sndb as u16;
-                self.x      = (fstb & 0x0F) as usize;
-            },
-            0x0d                                => {
-                self.opcode = op << 12;
-                self.x      = (fstb & 0x0F) as usize;
-                self.y      = ((sndb & 0xF0) >> 4) as usize;
-                self.n      = sndb & 0x0F;
-            },
-            _                                   => {
-                self.opcode = 0xFFFF;
-            },
-        }
-    }
-
-    fn get_opcode(&self) -> u16 {
-        self.opcode
-    }
-
-    fn set_opcode(&mut self, val: u16) {
-        self.opcode = val;
-    }
-}
 
 pub struct Chip8<'a> {
     regs:   [u8; 16],
@@ -149,15 +84,15 @@ impl<'a> Chip8<'a> {
         }
     }
 
-    pub fn fetch(&mut self) {
+    pub fn run(&mut self) {
         let raw_data = (self.mem[self.pc], self.mem[self.pc +1]); 
         self.inst.decode(raw_data); 
 
         self.jmp = false;
 
-        println!("{:#x}: {:#x}", self.pc, self.inst.get_opcode());
+        println!("{:#x}: {:#x}", self.pc, self.inst.opcode);
 
-        match Opcodes::from_u16(self.inst.get_opcode()).unwrap() {
+        match Opcodes::from_u16(self.inst.opcode).unwrap() {
             Opcodes::CLS    => self.cls(),
             Opcodes::RET    => self.ret(),
             Opcodes::JMP    => self.jmp(),
@@ -189,7 +124,7 @@ impl<'a> Chip8<'a> {
             Opcodes::RND    => self.rnd(),
             Opcodes::SHR    => self.shr(),
             Opcodes::DRW    => self.drw(),
-            _               => panic!("Unrecognized opcode: {:?}", self.inst.get_opcode()),
+            _               => panic!("Unrecognized opcode: {:?}", self.inst.opcode),
         }
 
         println!("i: {}", self.i);
