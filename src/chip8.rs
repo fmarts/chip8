@@ -345,16 +345,24 @@ impl<'a> Chip8<'a> {
         let n = self.inst.n as usize;
 
         self.screen.renderer.clear();
-        self.regs[15] = 0;
+        self.regs[0xF] = 0;
 
         for i in 0..n {
             let px = self.mem[(self.i + i as u16) as usize];
             for j in 0..8 {
                 if px & (0x80 >> j) != 0 {
-                    if self.screen.buffer[(x+j + (y+i) * 64) as usize] == 1 {
-                        self.regs[15] = 1;
+                    let mut offset = (x+j+(y+i)*64) as u16;
+
+                    offset = if offset >= 64*32 { 
+                        64*32-1 
+                    } else {
+                        offset
+                    };
+
+                    if self.screen.buffer[offset as usize] == 1 {
+                        self.regs[0xF] = 1;
                     }               
-                    self.screen.buffer[(x+j + (y+i) * 64) as usize] ^= 1;
+                    self.screen.buffer[offset as usize] ^= 1;
                 }
             } 
         } 
