@@ -1,15 +1,15 @@
 #![allow(unused_variables)]
 
-mod chip8;
-mod screen;
-mod instruction;
-
 extern crate rustc_serialize;
 extern crate docopt;
 extern crate sdl2;
 extern crate num;
 extern crate rand;
 #[macro_use] extern crate enum_primitive as ep;
+
+mod chip8;
+mod screen;
+mod instruction;
 
 use docopt::Docopt;
 use sdl2::keyboard::Keycode;
