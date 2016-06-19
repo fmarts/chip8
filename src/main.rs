@@ -35,15 +35,16 @@ struct Args {
 }
 
 fn main() {
-    let ctx = sdl2::init().unwrap();
-    let mut chip8 = Chip8::new(&ctx);
-    let mut events = ctx.event_pump().unwrap();
 
     let args: Args = Docopt::new(USAGE)
         .and_then(|d|
             d.version(Some(format!("{} v{}", env!("CARGO_PKG_NAME"),  env!("CARGO_PKG_VERSION"))))
              .decode())
         .unwrap_or_else(|e| e.exit());
+
+    let ctx = sdl2::init().unwrap();
+    let mut chip8 = Chip8::new(&ctx);
+    let mut events = ctx.event_pump().unwrap();
 
     chip8.load_rom(&args.arg_file);
 
