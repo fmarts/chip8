@@ -1,15 +1,15 @@
 #![allow(unused_variables)]
 
-mod chip8;
-mod screen;
-mod instruction;
-
 extern crate rustc_serialize;
 extern crate docopt;
 extern crate sdl2;
 extern crate num;
 extern crate rand;
 #[macro_use] extern crate enum_primitive as ep;
+
+mod chip8;
+mod screen;
+mod instruction;
 
 use docopt::Docopt;
 use sdl2::keyboard::Keycode;
@@ -35,13 +35,16 @@ struct Args {
 }
 
 fn main() {
+
+    let args: Args = Docopt::new(USAGE)
+        .and_then(|d|
+            d.version(Some(format!("{} v{}", env!("CARGO_PKG_NAME"),  env!("CARGO_PKG_VERSION"))))
+             .decode())
+        .unwrap_or_else(|e| e.exit());
+
     let ctx = sdl2::init().unwrap();
     let mut chip8 = Chip8::new(&ctx);
     let mut events = ctx.event_pump().unwrap();
-
-    let args: Args = Docopt::new(USAGE)
-        .and_then(|d| d.decode())
-        .unwrap_or_else(|e| e.exit());
 
     chip8.load_rom(&args.arg_file);
 
