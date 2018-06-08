@@ -4,9 +4,11 @@ version = "0.1.1"
 authors = ["Fernando Martins <martins.fernandomiguel@gmail.com>"]
 
 [dependencies]
-rustc-serialize = "0.3" 
-docopt = "0.6"
-sdl2 = "0.15"
-num = "0.1"
-rand = "0.3"
-enum_primitive = "*"
+rustc-serialize = "0.3.24" 
+serde = "1.0.66"
+serde_derive = "1.0" 
+docopt = "1.0.0"
+sdl2 = "0.31.0"
+num = "0.1.42"
+rand = "0.5.1"
+enum_primitive = "0.1.1"

@@ -1,15 +1,15 @@
 extern crate sdl2;
 
-use sdl2::render::{Renderer};
+use sdl2::render::{Canvas};
 use sdl2::{Sdl};
 
-pub struct Screen<'a> {
-    pub renderer: Renderer<'a>,
+pub struct Screen {
+    pub renderer: Canvas<sdl2::video::Window>,
     pub buffer: [u8; 64*32],
 }
 
-impl<'a> Screen<'a> { 
-    pub fn new(ctx: &Sdl) -> Screen<'a> {
+impl Screen { 
+    pub fn new(ctx: &Sdl) -> Screen {
         let video   = ctx.video().unwrap();
         let window  = video.window("chip8", 64*10, 32*10)
             .position_centered()
@@ -18,7 +18,7 @@ impl<'a> Screen<'a> {
             .unwrap();
 
         Screen {
-            renderer: window.renderer().build().unwrap(),
+            renderer: window.into_canvas().build().unwrap(),
             buffer: [0; 64*32]
         }
     }

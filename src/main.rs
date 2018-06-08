@@ -1,6 +1,7 @@
 #![allow(unused_variables)]
 
 extern crate rustc_serialize;
+#[macro_use] extern crate serde_derive;
 extern crate docopt;
 extern crate sdl2;
 extern crate num;
@@ -29,17 +30,15 @@ Options:
     -v --version    Show version
 ";
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize)]
 struct Args {
-    arg_file: String,
+    arg_file: String
 }
 
 fn main() {
 
     let args: Args = Docopt::new(USAGE)
-        .and_then(|d|
-            d.version(Some(format!("{} v{}", env!("CARGO_PKG_NAME"),  env!("CARGO_PKG_VERSION"))))
-             .decode())
+        .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
 
     let ctx = sdl2::init().unwrap();

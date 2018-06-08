@@ -32,7 +32,7 @@ const FONT_SET: [u8; 80] = [
     0xf0, 0x80, 0xf0, 0x80, 0x80, // F
 ];
 
-pub struct Chip8<'a> {
+pub struct Chip8 {
     regs:   [u8; 16],
     i:      u16, 
     dt:     u8,
@@ -45,17 +45,17 @@ pub struct Chip8<'a> {
     keys:   [u8; 16],
     mem:    [u8; 4096],
     stack:  Vec<usize>,
-    screen: Screen<'a>,
+    screen: Screen,
 }
 
-impl<'a> Debug for Chip8<'a> {
+impl Debug for Chip8 {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         self.regs[..].fmt(f)
     }
 }
 
-impl<'a> Chip8<'a> {
-    pub fn new(sdl: &Sdl) -> Chip8<'a> {
+impl Chip8 {
+    pub fn new(sdl: &Sdl) -> Chip8 {
         Chip8 {
             regs:   [0; 16],
             i:      0,
