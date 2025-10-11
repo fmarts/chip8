@@ -1,51 +1,36 @@
 #![allow(unused_variables)]
 
-extern crate rustc_serialize;
-#[macro_use] extern crate serde_derive;
-extern crate docopt;
-extern crate sdl2;
-extern crate num;
-extern crate rand;
-#[macro_use] extern crate enum_primitive as ep;
-
 mod chip8;
 mod screen;
 mod instruction;
 
-use docopt::Docopt;
+use clap::Parser;
 use sdl2::keyboard::Keycode;
 use sdl2::event::Event;
+use std::time::{Duration, Instant};
 use chip8::Chip8;
 
-const USAGE: &'static str = "
-Chip8 Emulator
-
-Usage:
-    chip8 <file>
-    chip8 (-h | --help)
-    chip8 (-v | --version)
-
-Options:
-    -h --help       Show this screen
-    -v --version    Show version
-";
-
-#[derive(Debug, Deserialize)]
+#[derive(Parser)]
+#[command(name = "chip8")]
+#[command(about = "A CHIP-8 emulator")]
+#[command(version)]
 struct Args {
-    arg_file: String
+    /// ROM file to load
+    file: String,
 }
 
 fn main() {
+    let args = Args::parse();
 
-    let args: Args = Docopt::new(USAGE)
-        .and_then(|d| d.deserialize())
-        .unwrap_or_else(|e| e.exit());
-
-    let ctx = sdl2::init().unwrap();
+    let ctx = sdl2::init().expect("Failed to initialize SDL2");
     let mut chip8 = Chip8::new(&ctx);
-    let mut events = ctx.event_pump().unwrap();
+    let mut events = ctx.event_pump().expect("Failed to get event pump");
 
-    chip8.load_rom(&args.arg_file);
+    chip8.load_rom(&args.file);
+
+    // CHIP-8 timing: Run multiple cycles per frame for better speed
+    let mut last_tick = Instant::now();
+    let frame_duration = Duration::from_millis(16); // ~60Hz frame rate
 
     'main: loop {
         for event in events.poll_iter() {
@@ -54,7 +39,6 @@ fn main() {
                 Event::KeyDown {
                     keycode: Some(key), ..
                 } => {
-                    chip8.reset_keys();
                     match key {
                         Keycode::Num1 => chip8.press(0x1),
                         Keycode::Num2 => chip8.press(0x2),
@@ -67,9 +51,32 @@ fn main() {
                         Keycode::A    => chip8.press(0x7),
                         Keycode::S    => chip8.press(0x8),
                         Keycode::D    => chip8.press(0x9),
-                        Keycode::Z    => chip8.press(0x0),
-                        Keycode::X    => chip8.press(0xb),
-                        Keycode::F    => chip8.press(0xf),
+                        Keycode::Z    => chip8.press(0xa),
+                        Keycode::X    => chip8.press(0x0),
+                        Keycode::C    => chip8.press(0xb),
+                        Keycode::V    => chip8.press(0xf),
+                        _             => {},
+                    }
+                },
+                Event::KeyUp {
+                    keycode: Some(key), ..
+                } => {
+                    match key {
+                        Keycode::Num1 => chip8.release(0x1),
+                        Keycode::Num2 => chip8.release(0x2),
+                        Keycode::Num3 => chip8.release(0x3),
+                        Keycode::Num4 => chip8.release(0xc),
+                        Keycode::Q    => chip8.release(0x4),
+                        Keycode::W    => chip8.release(0x5),
+                        Keycode::E    => chip8.release(0x6),
+                        Keycode::R    => chip8.release(0xd),
+                        Keycode::A    => chip8.release(0x7),
+                        Keycode::S    => chip8.release(0x8),
+                        Keycode::D    => chip8.release(0x9),
+                        Keycode::Z    => chip8.release(0xa),
+                        Keycode::X    => chip8.release(0x0),
+                        Keycode::C    => chip8.release(0xb),
+                        Keycode::V    => chip8.release(0xf),
                         _             => {},
                     }
                 },
@@ -77,7 +84,19 @@ fn main() {
             }
         }
 
-        chip8.run();
+        // Run multiple CHIP-8 cycles per frame for better speed
+        for _ in 0..10 {
+            chip8.run();
+        }
+
+        // Maintain consistent frame rate
+        let now = Instant::now();
+        if now.duration_since(last_tick) >= frame_duration {
+            last_tick = now;
+        } else {
+            std::thread::sleep(frame_duration - now.duration_since(last_tick));
+            last_tick = Instant::now();
+        }
     }
 
     println!("Exiting..");

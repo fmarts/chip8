@@ -1,21 +1,77 @@
-# chip8 emulator
+# CHIP-8 Emulator
 
-*work in progress*
+A modern CHIP-8 emulator written in Rust
 
-To run the emulator you'll need to install [SDL2](https://www.libsdl.org/download-2.0.php).
+## Features
 
+- Complete CHIP-8 instruction set implementation
+- Modern SDL2 graphics rendering
+- Proper error handling
+git a
+## Requirements
 
-## Usage
+- Rust 1.70+ (2021 edition)
+- SDL2 development libraries
+
+### Installing SDL2
+
+**macOS:**
+```bash
+brew install sdl2
 ```
-$ git clone git@github.com:fmmartins/chip8.git
-$ cargo install && cargo run -- <file>
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install libsdl2-dev
+```
+
+**Windows:**
+- **vcpkg:** `vcpkg install sdl2`
+- **Manual:** Download from [libsdl.org](https://www.libsdl.org/download-2.0.php)
+
+## Building and Running
+
+### Using Makefile (Recommended)
+
+**Unix/Linux/macOS:**
+```bash
+make run <path_to_rom>
+```
+
+**Windows:**
+```cmd
+# Install make via chocolatey: choco install make
+make run <path_to_rom>
+```
+
+### Manual Build
+```bash
+# Build the emulator
+cargo build --release
+
+# Run the emulator
+cargo run --release <path_to_rom>
+```
+
+## Controls
+
+The emulator uses the following key mapping for CHIP-8's hex keypad:
+
+```
+1 2 3 C
+4 5 6 D  
+7 8 9 E
+A 0 B F
+```
+
+Mapped to:
+
+```
+1 2 3 4
+Q W E R
+A S D F
+Z X C V
 ```
 
 ## Resources
 * [Cowgod's Chip8 Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
-
-## TODO
-* Integrate crate: term
-* Implement mod: keypad
-* Implement mod: logger
-* TESTS TESTS TESTS

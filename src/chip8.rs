@@ -8,10 +8,11 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 use rand::{thread_rng, Rng};
 use sdl2::Sdl;
 use sdl2::rect::Rect;
-use ep::FromPrimitive;
+use sdl2::pixels::Color;
+use num_traits::FromPrimitive;
 
-use screen::Screen;
-use instruction::{Opcodes, Instruction};
+use crate::screen::Screen;
+use crate::instruction::{Opcodes, Instruction};
 
 const FONT_SET: [u8; 80] = [
     0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
@@ -73,14 +74,19 @@ impl Chip8 {
 
     pub fn load_rom(&mut self, path: &str) {
         let mut rom: Vec<u8> = Vec::new();
-        let mut file = File::open(Path::new(path)).unwrap();
-        file.read_to_end(&mut rom).unwrap();
-        for i in 0usize..rom.len() {
-            self.mem[0x200 + i] = rom[i]; 
+        let mut file = File::open(Path::new(path)).expect("Failed to open ROM file");
+        file.read_to_end(&mut rom).expect("Failed to read ROM file");
+        
+        // Load ROM into memory starting at 0x200
+        for (i, byte) in rom.iter().enumerate() {
+            if 0x200 + i < self.mem.len() {
+                self.mem[0x200 + i] = *byte;
+            }
         }
-        // TODO: move this
-        for i in 0usize..FONT_SET.len() {
-            self.mem[0x00 + i] = FONT_SET[i];
+        
+        // Load font set into memory starting at 0x00
+        for (i, byte) in FONT_SET.iter().enumerate() {
+            self.mem[i] = *byte;
         }
     }
 
@@ -93,6 +99,7 @@ impl Chip8 {
         // println!("{:#x}: {:#x}", self.pc, self.inst.opcode);
 
         match Opcodes::from_u16(self.inst.opcode).unwrap() {
+            Opcodes::SYS    => self.sys(),
             Opcodes::CLS    => self.cls(),
             Opcodes::RET    => self.ret(),
             Opcodes::JMP    => self.jmp(),
@@ -148,12 +155,18 @@ impl Chip8 {
         self.pc -= 2;
     }
 
+    fn sys(&mut self) {
+        // SYS addr - Jump to a machine code routine at nnn
+        // In modern implementations, this is usually ignored
+        // as we don't have machine code routines
+    }
+
     fn cls(&mut self) {
         self.screen.clear();
     }
 
     fn ret(&mut self) {
-        let addr = self.stack.pop().unwrap();
+        let addr = self.stack.pop().expect("Stack underflow in RET instruction");
         self.set_pc(addr as u16);
     }
 
@@ -225,9 +238,10 @@ impl Chip8 {
     }
 
     fn add_iv(&mut self) {
-        let x   = self.regs[self.inst.x] as u16;
-        self.regs[0xF] = ((self.i + x) > 255) as u8;
-        self.i += x;
+        let x = self.regs[self.inst.x] as u16;
+        let (res, overflow) = self.i.overflowing_add(x);
+        self.regs[0xF] = overflow as u8;
+        self.i = res;
     }
 
     fn sub(&mut self) {
@@ -260,10 +274,8 @@ impl Chip8 {
 
     fn shl(&mut self) {
         let x = self.regs[self.inst.x];
-        let y = self.regs[self.inst.y];
-
-        self.regs[0xF] = ((x & 0xF0) >> 7 == 1) as u8;
-        self.regs[self.inst.x] *= 2;
+        self.regs[0xF] = (x & 0x80) >> 7;
+        self.regs[self.inst.x] = x << 1;
     }
 
     fn ld_vv(&mut self) {
@@ -278,8 +290,8 @@ impl Chip8 {
         let x = self.regs[self.inst.x];
 
         self.mem[self.i as usize]     = x / 100;
-        self.mem[self.i as usize + 1] = (x / 100) % 10;
-        self.mem[self.i as usize + 2] = (x % 100) % 10; 
+        self.mem[self.i as usize + 1] = (x / 10) % 10;
+        self.mem[self.i as usize + 2] = x % 10; 
     }
 
     fn ld_fv(&mut self) {
@@ -290,7 +302,7 @@ impl Chip8 {
     fn ld_vi(&mut self) {
         let x = self.inst.x as usize;
 
-        for i in 0usize..x {
+        for i in 0usize..=x {
             self.regs[i] = self.mem[self.i as usize + i];  
         }
     }
@@ -298,7 +310,7 @@ impl Chip8 {
     fn ld_iv(&mut self) {
         let x = self.inst.x as usize;
 
-        for i in 0usize..x {
+        for i in 0usize..=x {
             self.mem[self.i as usize + i] = self.regs[i]; 
         }
     }
@@ -314,6 +326,7 @@ impl Chip8 {
             if self.keys[i] == 1 {
                 self.regs[self.inst.x] = i as u8;
                 key_pressed = true;
+                break;
             }
         }
 
@@ -344,35 +357,35 @@ impl Chip8 {
         let (x, y) = (self.regs[idx_x] as usize, self.regs[idx_y] as usize);
         let n = self.inst.n as usize;
 
-        self.screen.renderer.clear();
         self.regs[0xF] = 0;
 
         for i in 0..n {
             let px = self.mem[(self.i + i as u16) as usize];
             for j in 0..8 {
                 if px & (0x80 >> j) != 0 {
-                    let mut offset = (x+j+(y+i)*64) as u16;
+                    let screen_x = (x + j) % 64;
+                    let screen_y = (y + i) % 32;
+                    let offset = screen_x + screen_y * 64;
 
-                    offset = if offset >= 64*32 { 
-                        64*32-1 
-                    } else {
-                        offset
-                    };
-
-                    if self.screen.buffer[offset as usize] == 1 {
+                    if self.screen.buffer[offset] == 1 {
                         self.regs[0xF] = 1;
                     }               
-                    self.screen.buffer[offset as usize] ^= 1;
+                    self.screen.buffer[offset] ^= 1;
                 }
             } 
         } 
 
-        for i in 0usize..32*10 {
-            for j in 0usize..64*10 {
-                if self.screen.buffer[(j/10)+(i/10)*64] == 1 {
+        // Clear screen and redraw
+        self.screen.renderer.set_draw_color(Color::RGB(0, 0, 0));
+        self.screen.renderer.clear();
+        self.screen.renderer.set_draw_color(Color::RGB(255, 255, 255));
+        
+        for i in 0..32 {
+            for j in 0..64 {
+                if self.screen.buffer[j + i * 64] == 1 {
                     self.screen.renderer.fill_rect(
-                        Rect::new(j as i32, i as i32, 1, 1)
-                        );
+                        Rect::new((j * 10) as i32, (i * 10) as i32, 10, 10)
+                    ).unwrap_or_else(|e| eprintln!("Failed to draw pixel: {}", e));
                 }
             }
         }
@@ -399,5 +412,9 @@ impl Chip8 {
 
     pub fn press(&mut self, key: u8) {
         self.keys[key as usize] = 1;
+    }
+
+    pub fn release(&mut self, key: u8) {
+        self.keys[key as usize] = 0;
     }
 }
