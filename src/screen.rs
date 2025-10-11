@@ -1,38 +1,68 @@
-use sdl2::render::Canvas;
-use sdl2::video::Window;
-use sdl2::pixels::Color;
+use minifb::{Window, WindowOptions, Scale, Key};
 
 pub struct Screen {
-    pub renderer: Canvas<Window>,
+    pub window: Window,
     pub buffer: [u8; 64*32],
+    pub pixel_buffer: Vec<u32>,
 }
 
 impl Screen { 
-    pub fn new(ctx: &sdl2::Sdl) -> Screen {
-        let video_subsystem = ctx.video().expect("Failed to initialize video subsystem");
-        let window = video_subsystem.window("CHIP-8 Emulator", 640, 320)
-            .position_centered()
-            .build()
-            .expect("Failed to create window");
+    pub fn new() -> Screen {
+        let window = Window::new(
+            "CHIP-8 Emulator",
+            640,
+            320,
+            WindowOptions {
+                scale: Scale::X1,
+                ..WindowOptions::default()
+            },
+        ).expect("Failed to create window");
 
-        let mut canvas = window.into_canvas().build().expect("Failed to create canvas");
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.clear();
-        canvas.present();
-
+        // Initialize pixel buffer (RGB888 format) - scaled to 640x320
+        let pixel_buffer = vec![0u32; 640 * 320];
+        
         Screen {
-            renderer: canvas,
-            buffer: [0; 64*32]
+            window,
+            buffer: [0; 64*32],
+            pixel_buffer,
         }
     }
 
     pub fn draw(&mut self) {
-        self.renderer.present();
+        // Convert CHIP-8 buffer to RGB888 pixel buffer with 10x scaling
+        for y in 0..32 {
+            for x in 0..64 {
+                let color = if self.buffer[x + y * 64] == 1 {
+                    0xFFFFFF // White
+                } else {
+                    0x000000 // Black
+                };
+                
+                // Scale each pixel to 10x10
+                for sy in 0..10 {
+                    for sx in 0..10 {
+                        let scaled_x = x * 10 + sx;
+                        let scaled_y = y * 10 + sy;
+                        self.pixel_buffer[scaled_x + scaled_y * 640] = color;
+                    }
+                }
+            }
+        }
+
+        self.window.update_with_buffer(&self.pixel_buffer, 640, 320)
+            .expect("Failed to update window buffer");
     }
 
     pub fn clear(&mut self) { 
         self.buffer = [0; 64*32];
-        self.renderer.set_draw_color(Color::RGB(0, 0, 0));
-        self.renderer.clear();
+        self.pixel_buffer = vec![0u32; 640 * 320];
+    }
+
+    pub fn is_open(&self) -> bool {
+        self.window.is_open()
+    }
+
+    pub fn get_keys(&self) -> Vec<Key> {
+        self.window.get_keys()
     }
 }

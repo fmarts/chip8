@@ -1,13 +1,13 @@
 [package]
 name = "chip8"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Fernando Martins <martins.fernandomiguel@gmail.com>"]
 edition = "2021"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 clap = { version = "4.0", features = ["derive"] }
-sdl2 = "0.36"
+minifb = "0.25"
 rand = "0.8"
 num-derive = "0.4"
 num-traits = "0.2"

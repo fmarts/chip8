@@ -6,9 +6,6 @@ use std::io::Read;
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 use rand::{thread_rng, Rng};
-use sdl2::Sdl;
-use sdl2::rect::Rect;
-use sdl2::pixels::Color;
 use num_traits::FromPrimitive;
 
 use crate::screen::Screen;
@@ -46,7 +43,7 @@ pub struct Chip8 {
     keys:   [u8; 16],
     mem:    [u8; 4096],
     stack:  Vec<usize>,
-    screen: Screen,
+    pub screen: Screen,
 }
 
 impl Debug for Chip8 {
@@ -56,7 +53,7 @@ impl Debug for Chip8 {
 }
 
 impl Chip8 {
-    pub fn new(sdl: &Sdl) -> Chip8 {
+    pub fn new() -> Chip8 {
         Chip8 {
             regs:   [0; 16],
             i:      0,
@@ -68,7 +65,7 @@ impl Chip8 {
             keys:   [0; 16],
             mem:    [0; 4096], 
             stack:  vec![],
-            screen: Screen::new(sdl),
+            screen: Screen::new(),
         }
     }
 
@@ -375,21 +372,7 @@ impl Chip8 {
             } 
         } 
 
-        // Clear screen and redraw
-        self.screen.renderer.set_draw_color(Color::RGB(0, 0, 0));
-        self.screen.renderer.clear();
-        self.screen.renderer.set_draw_color(Color::RGB(255, 255, 255));
-        
-        for i in 0..32 {
-            for j in 0..64 {
-                if self.screen.buffer[j + i * 64] == 1 {
-                    self.screen.renderer.fill_rect(
-                        Rect::new((j * 10) as i32, (i * 10) as i32, 10, 10)
-                    ).unwrap_or_else(|e| eprintln!("Failed to draw pixel: {}", e));
-                }
-            }
-        }
-
+        // Update the display
         self.screen.draw();
     }
 

@@ -5,29 +5,13 @@ A modern CHIP-8 emulator written in Rust
 ## Features
 
 - Complete CHIP-8 instruction set implementation
-- Modern SDL2 graphics rendering
+- Fast graphics rendering
+- Cross-platform compatibility
 - Proper error handling
-git a
+
 ## Requirements
 
 - Rust 1.70+ (2021 edition)
-- SDL2 development libraries
-
-### Installing SDL2
-
-**macOS:**
-```bash
-brew install sdl2
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt-get install libsdl2-dev
-```
-
-**Windows:**
-- **vcpkg:** `vcpkg install sdl2`
-- **Manual:** Download from [libsdl.org](https://www.libsdl.org/download-2.0.php)
 
 ## Building and Running
 

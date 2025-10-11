@@ -5,8 +5,7 @@ mod screen;
 mod instruction;
 
 use clap::Parser;
-use sdl2::keyboard::Keycode;
-use sdl2::event::Event;
+use minifb::Key;
 use std::time::{Duration, Instant};
 use chip8::Chip8;
 
@@ -22,65 +21,36 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let ctx = sdl2::init().expect("Failed to initialize SDL2");
-    let mut chip8 = Chip8::new(&ctx);
-    let mut events = ctx.event_pump().expect("Failed to get event pump");
-
+    let mut chip8 = Chip8::new();
     chip8.load_rom(&args.file);
 
     // CHIP-8 timing: Run multiple cycles per frame for better speed
     let mut last_tick = Instant::now();
     let frame_duration = Duration::from_millis(16); // ~60Hz frame rate
 
-    'main: loop {
-        for event in events.poll_iter() {
-            match event {
-                Event::Quit{..} => break 'main,
-                Event::KeyDown {
-                    keycode: Some(key), ..
-                } => {
-                    match key {
-                        Keycode::Num1 => chip8.press(0x1),
-                        Keycode::Num2 => chip8.press(0x2),
-                        Keycode::Num3 => chip8.press(0x3),
-                        Keycode::Num4 => chip8.press(0xc),
-                        Keycode::Q    => chip8.press(0x4),
-                        Keycode::W    => chip8.press(0x5),
-                        Keycode::E    => chip8.press(0x6),
-                        Keycode::R    => chip8.press(0xd),
-                        Keycode::A    => chip8.press(0x7),
-                        Keycode::S    => chip8.press(0x8),
-                        Keycode::D    => chip8.press(0x9),
-                        Keycode::Z    => chip8.press(0xa),
-                        Keycode::X    => chip8.press(0x0),
-                        Keycode::C    => chip8.press(0xb),
-                        Keycode::V    => chip8.press(0xf),
-                        _             => {},
-                    }
-                },
-                Event::KeyUp {
-                    keycode: Some(key), ..
-                } => {
-                    match key {
-                        Keycode::Num1 => chip8.release(0x1),
-                        Keycode::Num2 => chip8.release(0x2),
-                        Keycode::Num3 => chip8.release(0x3),
-                        Keycode::Num4 => chip8.release(0xc),
-                        Keycode::Q    => chip8.release(0x4),
-                        Keycode::W    => chip8.release(0x5),
-                        Keycode::E    => chip8.release(0x6),
-                        Keycode::R    => chip8.release(0xd),
-                        Keycode::A    => chip8.release(0x7),
-                        Keycode::S    => chip8.release(0x8),
-                        Keycode::D    => chip8.release(0x9),
-                        Keycode::Z    => chip8.release(0xa),
-                        Keycode::X    => chip8.release(0x0),
-                        Keycode::C    => chip8.release(0xb),
-                        Keycode::V    => chip8.release(0xf),
-                        _             => {},
-                    }
-                },
-                _                 => {},
+    while chip8.screen.is_open() {
+        // Handle input
+        let keys = chip8.screen.get_keys();
+        chip8.reset_keys();
+        
+        for key in keys {
+            match key {
+                Key::Key1 => chip8.press(0x1),
+                Key::Key2 => chip8.press(0x2),
+                Key::Key3 => chip8.press(0x3),
+                Key::Key4 => chip8.press(0xc),
+                Key::Q    => chip8.press(0x4),
+                Key::W    => chip8.press(0x5),
+                Key::E    => chip8.press(0x6),
+                Key::R    => chip8.press(0xd),
+                Key::A    => chip8.press(0x7),
+                Key::S    => chip8.press(0x8),
+                Key::D    => chip8.press(0x9),
+                Key::Z    => chip8.press(0xa),
+                Key::X    => chip8.press(0x0),
+                Key::C    => chip8.press(0xb),
+                Key::V    => chip8.press(0xf),
+                _         => {},
             }
         }
 
